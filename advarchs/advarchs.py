@@ -32,7 +32,7 @@ class AdvWebArchs():
     def __init__(self, name, tempdir, files_ext="", files_cnt=0):
         ArchsHandlersFactory.register('rar', rarfile.RarFile)
         ArchsHandlersFactory.register('zip', zipfile.ZipFile)
-        ArchsHandlersFactory.register('gz', tarfile.TarFile)
+        # ArchsHandlersFactory.register('tar.gz', tarfile.TarFile)
         self.name = name
         self.tempdir = tempdir
         self.files_ext = files_ext
@@ -67,7 +67,7 @@ class AdvWebArchs():
         shutil.move(tmp_path, fpath)
 
     def _download_arch(self, url, suff=""):
-        name = self._get_arch_filename(url)
+        name = self._get_arch_filename(url, suff)
         f_path = Utils.download(url, self.tempdir, name)
         return f_path
 

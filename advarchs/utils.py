@@ -1,10 +1,6 @@
 import os
 import cgi
 from pathlib import Path
-import re
-import zipfile
-
-import rarfile
 import requests
 
 
@@ -49,5 +45,8 @@ class Utils:
     @staticmethod
     def file_ext(f):
         return Path(f).suffix.replace('.', '')
+
+
+
 
 

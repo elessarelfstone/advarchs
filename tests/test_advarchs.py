@@ -28,10 +28,10 @@ def web_zip_archives():
     return web_zips
 
 
-@pytest.fixture()
-def web_tar_archives():
-    web_zips = json.loads(ut.read_file('test_tars.json'))
-    return web_zips
+# @pytest.fixture()
+# def web_tar_archives():
+#     web_zips = json.loads(ut.read_file('test_tars.json'))
+#     return web_zips
 
 
 def test_output_files_in_rar(web_rar_archives):
@@ -52,13 +52,13 @@ def test_output_files_in_zip(web_zip_archives):
             assert file in [f[0] for f in out_files[1]]
 
 
-def test_output_files_in_tar(web_tar_archives):
-    for arch in web_tar_archives:
-        arch_engine = AdvWebArchs(arch["name"], TEMP_DIR, arch["filter"])
-        out_files = arch_engine.output_paths(arch["url"])
-        assert len(out_files[1]) == arch["cnt"]
-        for file in arch["files"]:
-            assert file in [f[0] for f in out_files[1]]
+# def test_output_files_in_tar(web_tar_archives):
+#     for arch in web_tar_archives:
+#         arch_engine = AdvWebArchs(arch["name"], TEMP_DIR, arch["filter"])
+#         out_files = arch_engine.output_paths(arch["url"])
+#         assert len(out_files[1]) == arch["cnt"]
+#         for file in arch["files"]:
+#             assert file in [f[0] for f in out_files[1]]
 
 
 def test_retrieve_from_one_rar(web_rar_archives):
