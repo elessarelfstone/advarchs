@@ -3,6 +3,7 @@ python:
 - 3.6
 before_install:
 - pip install poetry
+- apt-get install p7zip-full
 install:
 - poetry install
 script:
