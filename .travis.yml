@@ -1,9 +1,36 @@
 language: python
-python:
-- 3.6
+env:
+  - POETRY_VERSION=0.12.17
+matrix:
+  include:
+    - name: "Python 3.6 on Ubuntu 14.04 Trusty"
+      dist: trusty
+      os: linux
+      python: 3.6
+    - name: "Python 3.6 on Ubuntu 16.04 Xenial"
+      dist: xenial
+      os: linux
+      python: 3.6
+    - name: "Python 3.7 on Ubuntu 16.04 Xenial"
+      dist: xenial
+      os: linux
+      python: 3.7
+    - name: "Python 3.6 on Ubuntu 18.04 Bionic"
+      dist: bionic
+      os: linux
+      python: 3.6
+    - name: "Python 3.7 on Ubuntu 18.04 Bionic"
+      dist: bionic
+      os: linux
+      python: 3.7
+    - name: "Python 3.8-dev on Ubuntu 18.04 Bionic"
+      dist: bionic
+      os: linux
+      python: 3.8-dev
+
 before_install:
-- pip install poetry
-- sudo apt-get install p7zip-full
+- pip install -q poetry==$POETRY_VERSION
+- sudo apt-get install p7zip-full p7zip-rar
 install:
 - poetry install
 script:
