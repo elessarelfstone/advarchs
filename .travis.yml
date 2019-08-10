@@ -27,6 +27,17 @@ matrix:
       install: []
       script:
         - docker run --rm $ADVARCHS_DOCKER_IMAGE
+    - name: "Python 3.7 on Windows"
+      os: windows
+      language: shell
+      before_install:
+        - choco install python
+        - python -m pip install --upgrade pip
+        - choco install 7zip
+        - pip3 install -q poetry==$POETRY_VERSION
+      script:
+        - poetry run pytest
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       
 
 before_install:
