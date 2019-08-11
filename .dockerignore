@@ -40,11 +40,17 @@ var/
 *.egg
 
 # IDE
+.idea
 .vscode
 .devcontainer
 
-# Artifacts
-__pycache__
-
 # Unit test / coverage reports
 .pytest_cache/
+
+# Sphinx documentation
+docs/_build/
+
+# Virtual environment
+.env/
+.venv/
+venv/
