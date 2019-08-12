@@ -63,8 +63,8 @@ deploy:
   - provider: script
     script: poetry publish
     on:
-	  tags: true
+      tags: true
       branch:
       - development
       - /^v\d+\.\d+(\.\d+)?\.[abdr]+\S*$/
-	  condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
+      condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
