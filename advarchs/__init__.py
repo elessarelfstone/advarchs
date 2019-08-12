@@ -14,7 +14,7 @@ from advarchs.utils import file_ext
 
 __version__ = '0.1.2'
 
-__all__ = ['extract_web_archive']
+__all__ = ['webfilename', 'extract_web_archive']
 
 SEVEN_Z = '7z'
 

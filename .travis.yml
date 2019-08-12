@@ -6,40 +6,39 @@ env:
   - ADVARCHS_DOCKER_IMAGE=elessarelfstone/advarchs
 matrix:
   include:
-    - name: "Python 3.6 on Ubuntu 18.04 Bionic"
-      dist: bionic
-      os: linux
-      python: 3.6
-    - name: "Python 3.7 on Ubuntu 18.04 Bionic"
-      dist: bionic
-      os: linux
-      python: 3.7
-    - name: "Python 3.8-dev on Ubuntu 18.04 Bionic"
-      dist: bionic
-      os: linux
-      python: 3.8-dev
-    - name: "Python 3.7 on Alpine"
-      sudo: required
-      services:
-        - docker
-      before_install:
-        - docker image build --build-arg ADVARCHS_ENV=$ADVARCHS_ENV -t $ADVARCHS_DOCKER_IMAGE .
-      install: []
-      script:
-        - docker run --rm $ADVARCHS_DOCKER_IMAGE
-    - name: "Python 3.7 on Windows"
-      os: windows
-      language: shell
-      before_install:
-        - choco install python
-        - python -m pip install --upgrade pip
-        - choco install 7zip
-        - pip3 install -q poetry==$POETRY_VERSION
-      script:
-        - poetry run pytest
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
-      
-
+  - name: Python 3.6 on Ubuntu 18.04 Bionic
+    dist: bionic
+    os: linux
+    python: 3.6
+  - name: Python 3.7 on Ubuntu 18.04 Bionic
+    dist: bionic
+    os: linux
+    python: 3.7
+  - name: Python 3.8-dev on Ubuntu 18.04 Bionic
+    dist: bionic
+    os: linux
+    python: 3.8-dev
+  - name: Python 3.7 on Alpine
+    sudo: required
+    services:
+    - docker
+    before_install:
+    - docker image build --build-arg ADVARCHS_ENV=$ADVARCHS_ENV -t $ADVARCHS_DOCKER_IMAGE
+      .
+    install: []
+    script:
+    - docker run --rm $ADVARCHS_DOCKER_IMAGE
+  - name: Python 3.7 on Windows
+    os: windows
+    language: shell
+    before_install:
+    - choco install python
+    - python -m pip install --upgrade pip
+    - choco install 7zip
+    - pip3 install -q poetry==$POETRY_VERSION
+    script:
+    - poetry run pytest
+    env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 before_install:
 - pip install -q poetry==$POETRY_VERSION
 - sudo apt-get install p7zip-full p7zip-rar
@@ -47,3 +46,13 @@ install:
 - poetry install
 script:
 - pytest
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: elessar
+  password:
+    secure: vjqz/V542AW2454gdqkLCaKslVC50XbLr5Vt+0Sw8dsynP7QmtI66KBAvBNhGznQkdS/j/ei9NwweCR+44/5GW9TnIAdOdltOX/fMhguPGijxmxD7X2f87aRoK2ve4g/d9l5BqRUr8AQLr6ZKGudf0G4Sb3skw3Fz6fwhj1Orawx+3FSG4IniNnqQns9D+0lowkS0koJPq9RVH0XliLmhOfg1B1rHDK3PgzrE/e0Pz8lh2bC0hCuWdlUqJ/Yp1UaoT6MxETt5x+CC3V9KCqy5246C5ESUDJIPOBiSF96eLNzW8utCjB7LPiQjYpXroFBo/snUaF9QqHbK6S3C6U+v+QaRhs/wpJHAWgLskq04mVmEcKajNhc3a4pK6tvzeW4C0G7pwjo+4WE7i8pEjrPnofoD5bfLPV/xB9/p+KhGDelazrZKfNFS6bLHGe/cpi8qHpwnoGbJsQ3So0/jf0+sRAx00JZ5bO9qmkZBo/wWAxOjfvTWpOF8MlNZ+oiG4uCWbKhtOlcm/4bBcBTSGqCX1AN88R6Gsix3bThgAw/ML7fdfSN1Db92cIV3n03ow8YGVNkPp3llAYxIxOoBuihLW93me2W/9dAEDJuta6cuUhoJqXz8hM0AXw7ez1xxxQQmTUqMCF7VO+3nF6GOUGAkSzMjpBHmNXA5x++AwRnYy0=
+  on:
+    tags: true
+    repo: elessarelfstone/advarchs
+    branch: master
