@@ -4,6 +4,8 @@ env:
   - POETRY_VERSION=0.12.17
   - ADVARCHS_ENV=build
   - ADVARCHS_DOCKER_IMAGE=elessarelfstone/advarchs
+  - secure: WgWBVvm7QYSTmrRmuHErxEFJ1EhMvXO2JgzFcD7qfmI7K8ZQzQCUsI5tTCiWR90WXEjHsqT/1frR9WKTI45LkgZvqlJlS9PXkbzXAhmxgoIMzbDjtIqyWnb6MffZxM3s8DBsFzZYhfw9pQBBvqjWIac4XYGH4ONVU9aDhGWz6cdKvDQNTObdAibmPkieWia9ogE7Jb7acE2PqTADvOmW3jhqwyC481f2kbjM6yPrEcrvpQ8OaJsj1DWv2d4L1/D6j2oq2gnYjxU93rHW2a5W3cVWeeWw34gw6B1PuMTE8CjzIDsLFqwA64tc6LRMc+5AGOw/pMAa2Pp3wRawM/kbv5aZxBS8oSb23c18c5EL8MYN8BWjVbAtKs48GpJGFwA/gIS0R5DhaI4JteCTtQSdjatws9fhHrlMo7qWUvWo05tF4cA9+9uPUxVHr/JZXLt3ng3X2f1Da0QpF5xBjtF0CfV9IOBZDG2UYUluC2I4Oxt0lhSzHz18JmoIIKPvpnXyzls1L29Bn0NTdy0tZgoLOkne2pdt7cS/HG59rvuaZFYNN9y1NKygYVicVa91Le5o1+wSezN5fVPOicJ1SQGE6TyJRBC0nlIecgcnjInicpz0Qpc1F/Yp+jLGuivMriwJfuL6rZM9AxBowrdqGhUPtP9/fTxi97PwB8ZR3DlDGWk=
+  - secure: Mht7/9z7g1lsHgR2VAHt09i8F7KLLNcMslnMYcRbrQlhpbyjw/16yYrzoHTFkscYNmLvbW+4VbrtyEu+/I+h8TmWGbVQy18kgIb5UcLZU+pUZoFVFMJU5HDDc8Xl/oxZOr5h4HgfzTHvQhgtAbXUte71HUtkaspwcfWzdcsJPTJCJ6N+/U2q1R+g9N8qc4eqx645Y6X4HRqN1XXrrNJ7thnRbrTCaD2UvQGzSgeB33iNPITw/QvfiRbsqXYPQR8CwyzQssmGFlErZRHxaBnp01FI2kyl3vwGP+ndXOMbWciyzZaaT8BejGYKwiZ8EKqSZXsHx65AX8xMJAMo4T8aLTIEAfK4cYPfoHFxa4Igd2eO6owJ4j9A87eOj7tlwa/v8pO5Pmfa954EgEF3zqwgqlIoNj1x4d9+xYa/yTIEVzHn9oPrXAo5ngYQ1Skw9P4u62wxvyyKd/7d0qvlfxyB+nIarrmHiJ1Si+69Ohi0U3e6Ik0iZfyK3xZ96M3PoNSz0dtDRAVQr5SmyyuKSUoyj6QDY+NVWDU0yCRqtCyScMGlhcBbjGF4NV8T4lCgsp0AvNgeMujJb78veDeb7MZyhtYxsQmiiHTqpBBQ1vScFPtID30xp8h4BKHtzx0hD1VFlPJ1MOEus5CAbuM1EQfBCx73wcK2sOcd92Qfnp+wEEM=
 matrix:
   include:
   - name: Python 3.6 on Ubuntu 18.04 Bionic
@@ -46,13 +48,23 @@ install:
 - poetry install
 script:
 - pytest
+before_deploy:
+- poetry config http-basic.pypi $PYPI_USER $PYPI_PASSWORD
+- poetry build
 deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: elessar
-  password:
-    secure: vjqz/V542AW2454gdqkLCaKslVC50XbLr5Vt+0Sw8dsynP7QmtI66KBAvBNhGznQkdS/j/ei9NwweCR+44/5GW9TnIAdOdltOX/fMhguPGijxmxD7X2f87aRoK2ve4g/d9l5BqRUr8AQLr6ZKGudf0G4Sb3skw3Fz6fwhj1Orawx+3FSG4IniNnqQns9D+0lowkS0koJPq9RVH0XliLmhOfg1B1rHDK3PgzrE/e0Pz8lh2bC0hCuWdlUqJ/Yp1UaoT6MxETt5x+CC3V9KCqy5246C5ESUDJIPOBiSF96eLNzW8utCjB7LPiQjYpXroFBo/snUaF9QqHbK6S3C6U+v+QaRhs/wpJHAWgLskq04mVmEcKajNhc3a4pK6tvzeW4C0G7pwjo+4WE7i8pEjrPnofoD5bfLPV/xB9/p+KhGDelazrZKfNFS6bLHGe/cpi8qHpwnoGbJsQ3So0/jf0+sRAx00JZ5bO9qmkZBo/wWAxOjfvTWpOF8MlNZ+oiG4uCWbKhtOlcm/4bBcBTSGqCX1AN88R6Gsix3bThgAw/ML7fdfSN1Db92cIV3n03ow8YGVNkPp3llAYxIxOoBuihLW93me2W/9dAEDJuta6cuUhoJqXz8hM0AXw7ez1xxxQQmTUqMCF7VO+3nF6GOUGAkSzMjpBHmNXA5x++AwRnYy0=
-  on:
-    tags: true
-    repo: elessarelfstone/advarchs
-    branch: master
+  - provider: script
+    script: poetry publish
+    on:
+      tags: true
+      branch:
+      - master
+      - /^v\d+\.\d+(\.\d+)?$/
+      condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
+  - provider: script
+    script: poetry publish
+    on:
+	  tags: true
+      branch:
+      - development
+      - /^v\d+\.\d+(\.\d+)?\.[abdr]+\S*$/
+	  condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
