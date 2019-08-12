@@ -2,6 +2,7 @@
 Advarchs
 ========
 
+[![Build Status](https://travis-ci.org/elessarelfstone/advarchs.svg?branch=master)](https://travis-ci.org/elessarelfstone/advarchs)
 
 Overview
 ========
@@ -20,7 +21,7 @@ a few lines to your code.
     from advarchs import extract_web_archive
 
     url = "http://www.site.com/archive.rar"
-    out_files = extract_web_archive(url, "c:\new.rar", ffilter=[])
+    out_files = extract_web_archive(url, "c:\\new.rar", ffilter=[])
 
 Requirements
 ============
