@@ -1,8 +1,27 @@
 [tool.poetry]
 name = "advarchs"
-version = "0.1.2"
-description = ""
-authors = ["elessarelfstone <elessarelfstone@mail.ru>"]
+version = "v0.1.2"
+description = "A tool for retrieving data from remote archives"
+authors = [
+    "Dauren Sdykov <elessarelfstone@mail.ru>"
+]
+license = "Apache-2.0"
+
+readme = "README.rst"
+
+repository = "https://github.com/elessarelfstone/advarchs"
+
+keywords = ["archive", "transfer", "zip", "rar", "advarchs"]
+
+classifiers = [
+    "Topic :: System :: Archiving",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.0",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7"
+]
 
 [tool.poetry.dependencies]
 python = "^3.5"
