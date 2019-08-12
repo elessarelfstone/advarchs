@@ -55,11 +55,11 @@ git remote add upstream https://github.com/elessarelfstone/advarchs.git
 If your cloned repository is behind the upstream commits, then get the latest changes from upstream:
 
 ```shell
-git checkout master
-git pull --rebase upstream master
+git checkout develop
+git pull --rebase upstream develop
 ```
 
-Create a new topic branch from `master` using the naming convention `ARCH-[issue-number]`
+Create a new topic branch from `develop` using the naming convention `ARCH-[issue-number]`
 to help us keep track of your contribution scope:
 
 ```
@@ -80,7 +80,7 @@ and `user.email` git configs, you can sign your commit automatically with `git c
 Locally merge (or rebase) the upstream development branch into your topic branch:
 
 ```
-git pull --rebase upstream master
+git pull --rebase upstream develop
 ```
 
 Push your topic branch up to your fork:
