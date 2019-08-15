@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "advarchs"
-version = "v0.1.2"
+version = "v0.1.4"
 description = "A tool for retrieving data from remote archives"
 authors = [
     "Dauren Sdykov <elessarelfstone@mail.ru>"
