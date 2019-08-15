@@ -57,14 +57,4 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      branch:
-      - /^v\d+\.\d+(\.\d+)?$/
-      condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
-  - provider: script
-    script: poetry publish
-    skip_cleanup: true
-    on:
-      tags: true
-      branch:
-      - /^v\d+\.\d+(\.\d+)?\.[abdr]+\S*$/
       condition: "$TRAVIS_PYTHON_VERSION == 3.8-dev"
