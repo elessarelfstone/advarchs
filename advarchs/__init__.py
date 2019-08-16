@@ -12,7 +12,9 @@ import requests
 
 from advarchs.utils import file_ext, extract_version
 
+
 __version__ = extract_version(__file__)
+
 
 __all__ = ['webfilename', 'extract_web_archive']
 
