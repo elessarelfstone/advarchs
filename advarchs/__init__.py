@@ -10,9 +10,9 @@ from subprocess import DEVNULL
 
 import requests
 
-from advarchs.utils import file_ext
+from advarchs.utils import file_ext, extract_version
 
-__version__ = '0.1.4'
+__version__ = extract_version(__file__)
 
 __all__ = ['webfilename', 'extract_web_archive']
 
