@@ -64,3 +64,5 @@ def file_ext(f):
 
 def random_string(min_val, max_val):
     return ''.join(choice(ascii_uppercase) for i in range(randint(min_val, max_val)))
+
+
