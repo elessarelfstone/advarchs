@@ -6,7 +6,7 @@ import pytest
 
 from advarchs import __version__
 from advarchs import download, filename_from_content_disposition, webfilename
-from advarchs import archive_info, extract, extract_web_archive
+from advarchs import extract, extract_web_archive
 from advarchs.utils import get_hash_memory_optimized, file_ext
 
 from tests.fixtures import local_archives
@@ -68,11 +68,11 @@ class TestDownloadUtils:
 
 
 class TestAdvArchs:
-    def test_archive_info(self, local_archives):
-        apath, _ = local_archives
-        arch_info = archive_info(apath)
-        assert len(arch_info[0]) > 0
-        assert len(arch_info[1]) > 0
+    # def test_archive_info(self, local_archives):
+    #     apath, _ = local_archives
+    #     arch_info = archive_info(apath)
+    #     assert len(arch_info[0]) > 0
+    #     assert len(arch_info[1]) > 0
 
     def test_extract_with_ext_as_filter(self, local_archives):
         apath, files_hashes = local_archives
