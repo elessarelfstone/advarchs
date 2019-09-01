@@ -30,6 +30,8 @@ elif os.name == 'posix':
     if (shutil.which('7z') or shutil.which('7za')) and (shutil.which('unrar')):
         HandlersFactory.register('7z', SevenZHandler('7z')) if shutil.which('7z') else HandlersFactory.register('7za', SevenZHandler('7za'))
         HandlersFactory.register('unrar', RarHandler('unrar'))
+    elif ((shutil.which('7z') or shutil.which('7za')) and not (shutil.which('unrar'))):
+        HandlersFactory.register('7z', SevenZHandler('7z')) if shutil.which('7z') else HandlersFactory.register('7za', SevenZHandler('7za'))
     else:
         raise AdvarchsException('Unpacker is not installed.')
 
