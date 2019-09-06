@@ -20,16 +20,20 @@ __all__ = ['webfilename', 'extract_web_archive']
 
 REMOVE_PUNCTUATION = dict((ord(char), None) for char in string.punctuation if char not in '._-')
 
+sevenz = max([a if shutil.which(a) else None for a in ('7z', '7za')], key=lambda x: bool(x), default=None)
+
 if os.name == 'nt':
     if shutil.which('7z'):
-        HandlersFactory.register('7z', SevenZHandler('7z', ))
+        HandlersFactory.register('7z', SevenZHandler('7z'))
         # HandlersFactory.register('unrar', RarHandler('unrar', ))
     else:
         raise AdvarchsException('Unpacker is not installed.')
 elif os.name == 'posix':
-    if (shutil.which('7z')) and (shutil.which('unrar')):
-        HandlersFactory.register('7z', SevenZHandler('7z'))
+    if (sevenz) and (shutil.which('unrar')):
+        HandlersFactory.register(sevenz, SevenZHandler(sevenz))
         HandlersFactory.register('unrar', RarHandler('unrar'))
+    elif (sevenz) and not (shutil.which('unrar')):
+        HandlersFactory.register(sevenz, SevenZHandler(sevenz))
     else:
         raise AdvarchsException('Unpacker is not installed.')
 

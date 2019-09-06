@@ -51,8 +51,15 @@ and convert it to a pandas_ dataframe with the following procedure:
 Requirements
 ------------
 
-* Python 3.5+
-* 7z utility installed
+- ``Python 3.5+``
+- ``p7zip``
+
+Special note
+~~~~~~~~~~~~
+
+On CentOS and Ubuntu <= 16.04, the following packages are needed:
+
+- ``unrar``
 
 Installation
 ------------
