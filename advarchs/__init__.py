@@ -1,5 +1,5 @@
 import os
-import shutil
+from shutil import which
 import string
 
 from mailbox import Message
@@ -7,42 +7,39 @@ from mailbox import Message
 import requests
 
 from advarchs.utils import file_ext, extract_version
-from advarchs.handlers import (HandlersFactory, AdvarchsException,
+from advarchs.handlers import (HandlersFactory, AdvarchsExtractException,
                                ArchiveStatus, SevenZHandler, RarHandler)
+
+
+__all__ = ['webfilename', 'extract_web_archive']
+
 
 ARCHIVE_COMPRESS_FORMATS = ('rar', 'tar', 'zip', 'gzip', 'bzip', 'gz')
 
 __version__ = extract_version(__file__)
 
 
-__all__ = ['webfilename', 'extract_web_archive']
-
-
 REMOVE_PUNCTUATION = dict((ord(char), None) for char in string.punctuation if char not in '._-')
 
-sevenz = max([a if shutil.which(a) else None for a in ('7z', '7za')], key=lambda x: bool(x), default=None)
+SEVENZ = max([a if which(a) else None for a in ('7z', '7za')], key=lambda x: bool(x), default=None)
+UNRAR = 'unrar' if which('unrar') else None
 
 if os.name == 'nt':
-    if shutil.which('7z'):
-        HandlersFactory.register('7z', SevenZHandler('7z'))
-        # HandlersFactory.register('unrar', RarHandler('unrar', ))
+    if SEVENZ:
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
     else:
-        raise AdvarchsException('Unpacker is not installed.')
+        raise AdvarchsExtractException('Unpacker is not installed.')
 elif os.name == 'posix':
-    if (sevenz) and (shutil.which('unrar')):
-        HandlersFactory.register(sevenz, SevenZHandler(sevenz))
-        HandlersFactory.register('unrar', RarHandler('unrar'))
-    elif (sevenz) and not (shutil.which('unrar')):
-        HandlersFactory.register(sevenz, SevenZHandler(sevenz))
+    if SEVENZ and UNRAR:
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
+        HandlersFactory.register(UNRAR, RarHandler(UNRAR))
+    elif SEVENZ and not UNRAR:
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
     else:
-        raise AdvarchsException('Unpacker is not installed.')
+        raise AdvarchsExtractException('Unpacker is not installed.')
 
 
-class ExtractException(Exception):
-    pass
-
-
-class DownloadException(Exception):
+class AdvarchsDownloadException(Exception):
     pass
 
 
@@ -94,7 +91,7 @@ def download(url, fpath):
             return f_size
         except Exception as e:
             os.remove(fpath)
-            raise AdvarchsException('Could not download file.' + e.message)
+            raise AdvarchsDownloadException('Could not download file.' + e.message)
 
 
 def _is_matched(afile, ffilter=[]):
@@ -114,6 +111,7 @@ def _is_archive(afile):
 
 
 def resolve_format(apath):
+    """ Resolve right handler for archive """
     status = ArchiveStatus.NOT_COMPATIBLE
     handlers = HandlersFactory.handlers()
     for handler in dict(handlers):
@@ -122,23 +120,20 @@ def resolve_format(apath):
         if unpacker.check(apath) == ArchiveStatus.ALL_GOOD:
             return handler
     if status == ArchiveStatus.CORRUPTED:
-        raise AdvarchsException('Could not unpack. Archive is corrupted')
+        raise AdvarchsExtractException('Could not unpack. Archive is corrupted')
     elif status == ArchiveStatus.NOT_COMPATIBLE:
-        raise AdvarchsException('Could not unpack. Archive format is not supported')
+        raise AdvarchsExtractException('Could not unpack. Archive format is not supported')
     elif status == ArchiveStatus.UNKNOWN_ERROR:
-        raise AdvarchsException('Could not unpack. Unknown error')
+        raise AdvarchsExtractException('Could not unpack. Unknown error')
 
 
 def extract(apath, ffilter=[]):
     """Extract all or specified files from archive"""
-    # handler = resolve_format(apath)
-    # unpacker_handler = HandlersFactory.get_handler(handler )
-    # out_files = unpacker_handler.extract(apath, ffilter)
-    # return out_files
     _extracted_files = []
     _is_nested = False
 
     def extract_recursive(curr_apath):
+        """ Extract while archives or compression occur """
         handler = resolve_format(curr_apath)
         unpacker = HandlersFactory.get_handler(handler)
         files = unpacker.files_list(curr_apath)
@@ -157,17 +152,7 @@ def extract(apath, ffilter=[]):
 
 def extract_web_archive(url, apath, ffilter=[]):
     """ Download archive and extract all or specified files"""
-    try:
-        download(url, apath)
-    except DownloadException:
-        if os.path.exists(apath):
-            os.remove(apath)
-        raise
-
+    download(url, apath)
     output_files = extract(apath, ffilter=ffilter)
     return output_files
-
-
-# t = resolve_format("c:\\Users\\elessar\\Documents\\test_archives\\test_advarchs_to_extract.rar")
-# fs = extract("c:\\Users\\elessar\\Documents\\test_archives\\КАТО_12_17.rar", ffilter=["katonew1.xls"])
 

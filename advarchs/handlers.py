@@ -3,9 +3,9 @@ import re
 import os
 import sys
 from enum import Enum
-from itertools import chain, groupby
+from itertools import groupby
 
-from advarchs.utils import run_with_output, file_ext
+from advarchs.utils import run_with_output
 
 
 CONSOLE_CODING = 'utf8'
@@ -20,7 +20,7 @@ class ArchiveStatus(Enum):
     UNKNOWN_ERROR = 3
 
 
-class AdvarchsException(Exception):
+class AdvarchsExtractException(Exception):
     pass
 
 
@@ -29,26 +29,27 @@ class ArchiveHandlerBase(object):
 
     @abc.abstractmethod
     def unpacker(self):
+        """"""
         return
 
     @abc.abstractmethod
     def files_list(self, apath):
-        """Get archive's content"""
+        """ Get the archive's content list """
         return
 
     @abc.abstractmethod
     def check(self, apath):
-        """Test archive for corruption or etc"""
+        """ Check archive if it's corrupted """
         return
 
     @abc.abstractmethod
     def extract(self, apath, ffilter):
-        """Extract files from archive"""
+        """ Extract files from archive """
         return
 
 
 class HandlersFactory:
-
+    """ Factory to get """
     _handlers = {}
 
     @classmethod
@@ -69,10 +70,9 @@ class HandlersFactory:
 
 class SevenZHandler(ArchiveHandlerBase):
 
-    formats = ('tar', 'zip', 'gzip', 'bzip')
-    re_not_compatible_pattern = r"Can not open the file as archive"
-    re_success_pattern = r"Everything is Ok"
-    re_corruption_pattern = r"Data Error"
+    re_not_compatible_pattern = r"can not open the file as archive"
+    re_success_pattern = r"everything is ok"
+    re_corruption_pattern = r"data error"
 
     def __init__(self, unpacker):
         self._unpacker = unpacker
@@ -110,6 +110,7 @@ class SevenZHandler(ArchiveHandlerBase):
         return self._unpacker
 
     def check(self, apath):
+
         r, out, err = run_with_output([self.unpacker(), 't', apath], CONSOLE_CODING)
         if r == 0:
             return ArchiveStatus.ALL_GOOD
@@ -131,7 +132,7 @@ class SevenZHandler(ArchiveHandlerBase):
         args = [self.unpacker(), 'e', '-aoa', apath, afile, dfolder]
         r, out, err = run_with_output(args, CONSOLE_CODING)
         if r != 0:
-            raise AdvarchsException('Could not extract archive.')
+            raise AdvarchsExtractException('Could not extract archive.')
         f_path = os.path.join(os.path.dirname(apath), afile)
 
         return f_path
@@ -139,9 +140,9 @@ class SevenZHandler(ArchiveHandlerBase):
 
 class RarHandler(ArchiveHandlerBase):
 
-    re_not_compatible_pattern = r"is not RAR archive"
-    re_success_pattern = r"All OK"
-    re_corruption_pattern = r"Total errors:"
+    re_not_compatible_pattern = r"is not rar archive"
+    re_success_pattern = r"all ок"
+    re_corruption_pattern = r"total errors:"
 
     def __init__(self, unpacker):
         self._unpacker = unpacker
@@ -186,11 +187,10 @@ class RarHandler(ArchiveHandlerBase):
                     return ArchiveStatus.UNKNOWN_ERROR
 
     def extract(self, apath, afile):
-
         args = [self.unpacker(), 'e', '-o+', apath, afile]
         r, out, err = run_with_output(args, CONSOLE_CODING, cwd=os.path.dirname(apath))
         if r != 0:
-            raise AdvarchsException('Could not extract archive.')
+            raise AdvarchsExtractException('Could not extract archive.')
         f_path = os.path.join(os.path.dirname(apath), afile)
 
         return f_path
