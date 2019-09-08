@@ -34,7 +34,7 @@ def localfile(fpath):
 
 
 def test_version():
-    assert __version__ == 'v0.1.5'
+    assert __version__ == 'v0.1.6'
 
 
 class TestDownloadUtils:
