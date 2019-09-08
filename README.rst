@@ -44,7 +44,7 @@ and convert it to a pandas_ dataframe with the following procedure:
     arch_path = os.path.join(TEMP_DIR, arch_file_name)
     xlsx_files = extract_web_archive(url, arch_path, ffilter=['xlsx'])
     for xlsx_f in xlsx_files:
-        xlsx = pd.ExcelFile(xlspath)
+        xlsx = pd.ExcelFile(xlsx_f)
 
     ...
 
