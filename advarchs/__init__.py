@@ -33,7 +33,7 @@ elif os.name == 'posix':
     if SEVENZ and UNRAR:
         HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
         HandlersFactory.register(UNRAR, RarHandler(UNRAR))
-    elif SEVENZ and not UNRAR:
+    elif SEVENZ and (not UNRAR):
         HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
     else:
         raise AdvarchsExtractException('Unpacker is not installed.')
@@ -156,3 +156,5 @@ def extract_web_archive(url, apath, ffilter=[]):
     output_files = extract(apath, ffilter=ffilter)
     return output_files
 
+
+print('asdsa')

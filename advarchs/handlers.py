@@ -152,7 +152,7 @@ class RarHandler(ArchiveHandlerBase):
 
     def _files_info(self, apath):
         r, out, _ = run_with_output([self.unpacker(), 'ltab', apath], CONSOLE_CODING)
-        raw = re.search(r"([ \t]*Name:.*?)(?=(\n{1,2}Service:\s*EOF|\Z))", out, re.M | re.S).group(1)
+        raw = re.search(r"([ \t]*name:.*?)(?=(\n{1,2}service:\s*eof|\Z))", out, re.M | re.S).group(1)
         blocks = []
         current_block = {}
         # make flat list of clean stdout's lines
