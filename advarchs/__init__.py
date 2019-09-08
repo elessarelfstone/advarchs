@@ -1,40 +1,45 @@
-import re
 import os
-import sys
-import itertools
+from shutil import which
 import string
-import subprocess as subp
+
 from mailbox import Message
-from itertools import groupby
-from subprocess import DEVNULL
 
 import requests
 
 from advarchs.utils import file_ext, extract_version
-
-
-__version__ = extract_version(__file__)
+from advarchs.handlers import (HandlersFactory, AdvarchsExtractException,
+                               ArchiveStatus, SevenZHandler, RarHandler)
 
 
 __all__ = ['webfilename', 'extract_web_archive']
 
-SEVEN_Z = '7z'
 
+ARCHIVE_COMPRESS_FORMATS = ('rar', 'tar', 'zip', 'gzip', 'bzip', 'gz')
 
-CONSOLE_CODING = 'utf8'
-if sys.platform == 'win32':
-    CONSOLE_CODING = 'cp866'
+__version__ = extract_version(__file__)
 
-ARCHIVE_COMPRESS_FORMATS = ('rar', 'tar', 'zip', 'gzip', 'bzip')
 
 REMOVE_PUNCTUATION = dict((ord(char), None) for char in string.punctuation if char not in '._-')
 
+SEVENZ = max([a if which(a) else None for a in ('7z', '7za')], key=lambda x: bool(x), default=None)
+UNRAR = 'unrar' if which('unrar') else None
 
-class ExtractException(Exception):
-    pass
+if os.name == 'nt':
+    if SEVENZ:
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
+    else:
+        raise AdvarchsExtractException('Unpacker is not installed.')
+elif os.name == 'posix':
+    if SEVENZ and UNRAR:
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
+        HandlersFactory.register(UNRAR, RarHandler(UNRAR))
+    elif SEVENZ and (not UNRAR):
+        HandlersFactory.register(SEVENZ, SevenZHandler(SEVENZ))
+    else:
+        raise AdvarchsExtractException('Unpacker is not installed.')
 
 
-class DownloadException(Exception):
+class AdvarchsDownloadException(Exception):
     pass
 
 
@@ -86,158 +91,70 @@ def download(url, fpath):
             return f_size
         except Exception as e:
             os.remove(fpath)
-            raise DownloadException('Could not download file.' + e.message)
+            raise AdvarchsDownloadException('Could not download file.' + e.message)
 
 
-def _7z_error_message(raw):
-    """ Return error message from raw 7z's stderr"""
-    def clean(s):
-        return s.strip().split('\n')[-1]
-
-    # we need only get message that goes after ERROR or ERRORS
-    pattern = r"ERROR:\s?(.*\r\n.*)|ERRORS:\r\n(.*)"
-    search_result = re.findall(pattern, raw, re.M)
-    err_iter = itertools.chain.from_iterable(search_result)
-    return '. '.join(list(filter(None, set(clean(i) for i in err_iter))))
-
-
-def test_7z():
-    """Check if 7z installed or not"""
-    try:
-        subp.Popen([SEVEN_Z], stdout=DEVNULL, stderr=DEVNULL)
-        result = True
-    except OSError:
-        result = False
-
-    return result
-
-
-def test_archive(apath):
-    """Check if archive corrupted"""
-    args = [SEVEN_Z, 't', apath]
-    call_result = subp.Popen(args, stdout=subp.PIPE, stderr=subp.PIPE)
-    stdout, stderr = call_result.communicate()
-    if (call_result.returncode != 0) or (not re.search(r"Everything is Ok", stdout.decode(CONSOLE_CODING))):
-        error_message = _7z_error_message(stderr.decode(CONSOLE_CODING))
-        raise ExtractException(error_message)
+def _is_matched(afile, ffilter=[]):
+    """ Check if file in archive should be extracted """
+    if ffilter:
+        # we check only full name and extension of file
+        if (os.path.basename(afile) in ffilter) or (file_ext(afile) in ffilter):
+            return True
+        else:
+            return False
     return True
 
 
-def archive_info(apath):
-    """Get info about archive and its content"""
-
-    def parse_files_info_list(raw):
-        """Return directories and files list from 7z's raw stdout with details"""
-        blocks = []
-        current_block = {}
-        # make flat list of clean stdout's lines
-        lines = [line.strip() for line in raw.strip().split('\n')]
-        # break down flat list with details on lists for each file in archive
-        block_list = [list(g) for k, g in groupby(lines, lambda x: x != '') if k]
-
-        for block in block_list:
-            for line in block:
-                key, _, value = line.partition('=')
-                current_block[key.strip().lower()] = value.strip()
-            blocks.append(current_block)
-            current_block = {}
-
-        return blocks
-
-    def parse_archive_tech_info(raw):
-        """Return tech details of archive"""
-        arch_info = {}
-        for line in raw.strip().split('\n'):
-            key, _, value = line.partition('=')
-            arch_info[key.strip().lower()] = value.strip().lower()
-
-        return arch_info
-
-    args = [SEVEN_Z, 'l', '-slt', apath]
-    call_result = subp.Popen(args, stdout=subp.PIPE)
-    stdout, _ = call_result.communicate()
-    if call_result.returncode != 0:
-        raise ExtractException('Subprocess returned non-zero exit code. Could not get archive info.')
-
-    raw_list = re.sub(r"^-+", '-'*10, stdout.decode(CONSOLE_CODING), flags=re.MULTILINE).split('-'*10)
-    return parse_archive_tech_info(raw_list[1]), parse_files_info_list(raw_list[2])
+def _is_archive(afile):
+    """Check if inside file can be archive or compressed"""
+    return file_ext(os.path.basename(afile)) in ARCHIVE_COMPRESS_FORMATS
 
 
-def _extract_file(apath, file):
-    dfolder = '-o' + os.path.dirname(apath)
-    args = [SEVEN_Z, 'e', '-aoa', apath, file, dfolder]
-    call_result = subp.Popen(args, stdout=subp.PIPE)
-    stdout, _ = call_result.communicate()
-    if call_result.returncode != 0:
-        raise ExtractException('Subprocess returned non-zero exit code. Could not extract archive.')
-    out_file = os.path.join(os.path.dirname(apath), file)
-
-    return out_file
+def resolve_format(apath):
+    """ Resolve right handler for archive """
+    status = ArchiveStatus.NOT_COMPATIBLE
+    handlers = HandlersFactory.handlers()
+    for handler in dict(handlers):
+        unpacker = handlers[handler]
+        status = unpacker.check(apath)
+        if unpacker.check(apath) == ArchiveStatus.ALL_GOOD:
+            return handler
+    if status == ArchiveStatus.CORRUPTED:
+        raise AdvarchsExtractException('Could not unpack. Archive is corrupted')
+    elif status == ArchiveStatus.NOT_COMPATIBLE:
+        raise AdvarchsExtractException('Could not unpack. Archive format is not supported')
+    elif status == ArchiveStatus.UNKNOWN_ERROR:
+        raise AdvarchsExtractException('Could not unpack. Unknown error')
 
 
 def extract(apath, ffilter=[]):
-    """ Extract files to same directory"""
-    _out_files = []
+    """Extract all or specified files from archive"""
+    _extracted_files = []
+    _is_nested = False
 
-    def aformat(ainfo):
-        a_format = ''
-        if ainfo["path"]:
-            # basic sanitize
-            a_format = ''.join([i for i in ainfo["type"] if not i.isdigit()]).lower()
-        return a_format
+    def extract_recursive(curr_apath):
+        """ Extract while archives or compression occur """
+        handler = resolve_format(curr_apath)
+        unpacker = HandlersFactory.get_handler(handler)
+        files = unpacker.files_list(curr_apath)
 
-    def is_matched(afile):
-        """ Check if file in archive should be extracted """
-        if ffilter:
-            # we check only full name and extension of file
-            if (os.path.basename(afile) in ffilter) or (file_ext(afile) in ffilter):
-                return True
-            else:
-                return False
+        for f in files:
+            if _is_matched(f, ffilter=ffilter):
+                _fpath = unpacker.extract(curr_apath, f)
+                _extracted_files.append(_fpath)
+            if _is_archive(f):
+                _apath = unpacker.extract(curr_apath, f)
+                extract_recursive(_apath)
 
-    def is_archive(afile):
-        """ Check if there is another archive inside or it's compressed archive like tar.gz """
-        return file_ext(os.path.basename(afile)) in ARCHIVE_COMPRESS_FORMATS
-        # return aformat(ainfo) in ARCHIVE_COMPRESS_FORMATS
-
-    def extract_recur(curr_apath):
-        """Extract current archive and if there are archives inside it will be called for them
-        @return: paths of extracted files
-        """
-        a_info, a_content = archive_info(curr_apath)
-
-        # this real checking, cause we checking 7z info but not just extension of file
-        if aformat(a_info) in ARCHIVE_COMPRESS_FORMATS:
-            f_paths = [f["path"] for f in a_content]
-            for f in f_paths:
-                if is_matched(f):
-                    buff = _extract_file(curr_apath, f)
-                    _out_files.append(buff)
-                if is_archive(f):
-                    tmp = _extract_file(curr_apath, f)
-                    extract_recur(tmp)
-        else:
-            raise ExtractException(a_info["path"] + ' is not archive')
-
-    if test_7z():
-        extract_recur(apath)
-    else:
-        raise ExtractException('7z is not installed')
-    return _out_files
+    extract_recursive(apath)
+    return _extracted_files
 
 
 def extract_web_archive(url, apath, ffilter=[]):
     """ Download archive and extract all or specified files"""
-    try:
-        download(url, apath)
-    except DownloadException:
-        if os.path.exists(apath):
-            os.remove(apath)
-        raise
-
-    output_files = []
-
-    if test_archive(apath):
-        output_files = extract(apath, ffilter=ffilter)
-
+    download(url, apath)
+    output_files = extract(apath, ffilter=ffilter)
     return output_files
+
+
+print('asdsa')

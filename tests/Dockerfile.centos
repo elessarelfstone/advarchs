@@ -1,0 +1,48 @@
+FROM centos:centos7 as development_build
+
+ARG ADVARCHS_ENV
+ARG PIP_DISABLE_PIP_VERSION_CHECK=on
+
+ENV ADVARCHS_ENV=${ADVARCHS_ENV} \
+  PYTHONFAULTHANDLER=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONHASHSEED=random \
+  PIP_NO_CACHE_DIR=off \
+  PIP_DISABLE_PIP_VERSION_CHECK=on \
+  PIP_DEFAULT_TIMEOUT=100 \
+  POETRY_VERSION=0.12.17
+
+# System deps:
+RUN yum update -y \
+    && yum -y install \
+        yum-utils \
+        which \
+        wget \
+    && yum -y groupinstall development \
+    && yum -y install https://centos7.iuscommunity.org/ius-release.rpm \
+    && yum -y install \
+        python36u \
+        python36u-pip \
+        p7zip \
+    && yum -y clean all \
+    && pip3.6 install "poetry==$POETRY_VERSION"
+
+# Unrar:
+WORKDIR /tmp
+RUN wget https://www.rarlab.com/rar/rarlinux-x64-5.6.0.tar.gz \
+    && tar -zxvf rarlinux-x64-5.6.0.tar.gz \
+    && cp -v /tmp/rar/rar /tmp/rar/unrar /usr/local/bin/ \
+    && rm -rf /tmp/rar
+
+WORKDIR /code
+COPY ./poetry.lock ./pyproject.toml /code/
+
+# Project initialization:
+RUN poetry install $(test "$YOUR_ENV" == production && echo "--no-dev") --no-interaction --no-ansi
+
+FROM development_build as production_build
+
+# RUN yum -y install p7zip && yum -y clean all
+COPY . /code
+
+ENTRYPOINT [ "poetry", "run", "pytest" ]
