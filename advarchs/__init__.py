@@ -11,7 +11,7 @@ from advarchs.handlers import (HandlersFactory, AdvarchsExtractException,
                                ArchiveStatus, SevenZHandler, RarHandler)
 
 
-__all__ = ['webfilename', 'extract_web_archive']
+__all__ = ['webfilename', 'extract_web_archive', 'AdvArchs']
 
 
 ARCHIVE_COMPRESS_FORMATS = ('rar', 'tar', 'zip', 'gzip', 'bzip', 'gz')
@@ -225,13 +225,3 @@ class AdvArchs:
         _files = extract(apath, ffilter=ffilter)
 
         return _files
-
-
-# url = "https://drive.google.com/uc?export=download&id=1No0RIFMYJ7ymw7PT5id3JRh9Zu4UoZVj"
-# #
-# TEMP_DIR = tempfile.gettempdir()
-# webfname = webfilename(url)
-# apath = os.path.join(TEMP_DIR, webfname)
-# files = AdvArchs.files_list(url, apath, [])
-# # files = AdvArchs.extract_web_archive(url, apath, [])
-# # print(files)
