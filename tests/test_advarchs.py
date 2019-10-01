@@ -62,7 +62,7 @@ class TestDownloadUtils:
     )
     def test_download(self, url):
         with webfile(url) as apath:
-            f_size = download(url, apath)
+            f_size, _ = download(url, apath)
             assert os.path.exists(apath)
             assert f_size > 0
 
@@ -73,6 +73,9 @@ class TestAdvArchs:
     #     arch_info = archive_info(apath)
     #     assert len(arch_info[0]) > 0
     #     assert len(arch_info[1]) > 0
+
+    # def test_files_list(self):
+
 
     def test_extract_with_ext_as_filter(self, local_archives):
         apath, files_hashes = local_archives

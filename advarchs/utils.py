@@ -28,7 +28,9 @@ def extract_version(source_file):
 
 def get_hash_memory_optimized(f_path, mode='sha256'):
     """ Get hash of file"""
+
     h = hashlib.new(mode)
+
     with open(f_path, 'rb') as file:
         block = file.read(4096)
         while block:

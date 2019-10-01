@@ -27,7 +27,7 @@ def local_archives(request):
     f_hashes = {}
     arch_name, arch_handler, files = arch
     frmt = arch_name.split('_')[0]
-    arch_path = os.path.join(TEMP_DIR, "{}.{}".format(arch_name,frmt))
+    arch_path = os.path.join(TEMP_DIR, "{}.{}".format(arch_name, frmt))
     for f in files:
         f_path = os.path.join(TEMP_DIR, f)
         f_paths.append(f_path)
