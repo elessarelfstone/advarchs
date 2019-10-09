@@ -44,6 +44,7 @@ matrix:
     os: windows
     language: shell
     before_install:
+    - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
     - choco install python
     - python -m pip install --upgrade pip
     - choco install 7zip
